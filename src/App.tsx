@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 
 /* ============================================================
-   IRR Hesaplama — Kredi / Fon Nakit Akışı
+   IRR Calculation — Loan / Fund Cash Flow
    ============================================================ */
 
 const MS = 86400000;
@@ -144,7 +144,7 @@ function DateCell({ value, onChange }) {
       <input
         className="datein"
         value={text}
-        placeholder="GG.AA.YYYY"
+        placeholder="DD.MM.YYYY"
         inputMode="numeric"
         onFocus={() => setFocused(true)}
         onChange={(e) => {
@@ -167,7 +167,7 @@ function DateCell({ value, onChange }) {
         type="button"
         className="calbtn"
         tabIndex={-1}
-        title="Takvimden seç"
+        title="Select from calendar"
         onClick={openPicker}
       >
         <svg
@@ -239,59 +239,29 @@ function NumberCell({ value, onChange, className }) {
 }
 
 const DEFAULT_ASSUMPTIONS = {
-  annualRatePct: 15,
-  mgmtFeePct: 2,
+  annualRatePct: 0,
+  mgmtFeePct: 0,
   bsmvPct: 5,
-  monthlyFixed: 5000,
-  setupCost: 10000,
+  monthlyFixed: 0,
+  setupCost: 0,
   dayCount: 365,
 };
 
 const DEFAULT_ROWS = [
-  {
-    date: "2026-01-05",
-    disbursement: "2000000",
-    isCoupon: false,
-    principal: "0",
-  },
-  {
-    date: "2026-02-05",
-    disbursement: "2000000",
-    isCoupon: false,
-    principal: "0",
-  },
-  {
-    date: "2026-03-05",
-    disbursement: "2000000",
-    isCoupon: false,
-    principal: "0",
-  },
+  { date: "2026-01-05", disbursement: "0", isCoupon: false, principal: "0" },
+  { date: "2026-02-05", disbursement: "0", isCoupon: false, principal: "0" },
+  { date: "2026-03-05", disbursement: "0", isCoupon: false, principal: "0" },
   // NB: 6th, not 5th — matches the Excel exactly (creates a 32-then-29 day split)
-  {
-    date: "2026-04-06",
-    disbursement: "2000000",
-    isCoupon: false,
-    principal: "0",
-  },
-  {
-    date: "2026-05-05",
-    disbursement: "2000000",
-    isCoupon: false,
-    principal: "0",
-  },
+  { date: "2026-04-06", disbursement: "0", isCoupon: false, principal: "0" },
+  { date: "2026-05-05", disbursement: "0", isCoupon: false, principal: "0" },
   { date: "2026-06-05", disbursement: "0", isCoupon: false, principal: "0" },
-  { date: "2026-07-05", disbursement: "0", isCoupon: true, principal: "0" },
+  { date: "2026-07-05", disbursement: "0", isCoupon: false, principal: "0" },
   { date: "2026-08-05", disbursement: "0", isCoupon: false, principal: "0" },
   { date: "2026-09-05", disbursement: "0", isCoupon: false, principal: "0" },
   { date: "2026-10-05", disbursement: "0", isCoupon: false, principal: "0" },
   { date: "2026-11-05", disbursement: "0", isCoupon: false, principal: "0" },
   { date: "2026-12-05", disbursement: "0", isCoupon: false, principal: "0" },
-  {
-    date: "2027-01-05",
-    disbursement: "0",
-    isCoupon: true,
-    principal: "10000000",
-  },
+  { date: "2027-01-05", disbursement: "0", isCoupon: false, principal: "0" },
 ];
 
 function compute(a, rows) {
@@ -318,7 +288,7 @@ function compute(a, rows) {
     bal.push(-cum);
   }
 
-  // Cumulative accrued interest (Dönem Faizi).
+  // Cumulative accrued interest (Period Interest).
   // E_i = E_{i-1} + |balance_i| * days_i * daily — the running total of
   // interest accrued through the end of each period (= Excel col E).
   const E = [];
@@ -347,11 +317,11 @@ function compute(a, rows) {
   }
 
   const principal = rows.map((r) => num(r.principal));
-  const H = rows.map((r, i) => -num(r.disbursement) + coupon[i] + principal[i]); // Net NA Brüt
-  const I = bal.map((b) => b * monthlyMgmt); // Yön. Ücreti
+  const H = rows.map((r, i) => -num(r.disbursement) + coupon[i] + principal[i]); // Net CF Gross
+  const I = bal.map((b) => b * monthlyMgmt); // Management Fee
   const J = rows.map((r, i) =>
     i === 0 ? -(monthlyFixed + setup) : -monthlyFixed
-  ); // Sabit Gider
+  ); // Fixed Expense
 
   // Fund series over ALL rows (no folding). The final row carries only its
   // gross settlement (no mgmt fee / fixed expense), exactly like Excel where
@@ -436,28 +406,24 @@ export default function App() {
           <h1>IRR Calculator Dashboard</h1>
         </div>
         <button className="ghost" onClick={reset}>
-          Sıfırla
+          Reset
         </button>
       </header>
 
       {/* ASSUMPTIONS */}
       <section className="panel">
         <div className="sec-label">
-          <span className="sec-no">01</span> Veriler<em></em>
+          <span className="sec-no">01</span> Assumptions<em></em>
         </div>
         <div className="grid">
-          <Field label="Yıllık faiz" hint="Annual rate" suffix="%">
+          <Field label="Annual Rate" suffix="%">
             <input
               value={a.annualRatePct}
               onChange={(e) => setAssum("annualRatePct", e.target.value)}
               inputMode="decimal"
             />
           </Field>
-          <Field
-            label="Yönetim ücreti (yıllık)"
-            hint="Mgmt fee (yearly)"
-            suffix="%"
-          >
+          <Field label="Management Fee (annual)" suffix="%">
             <input
               value={a.mgmtFeePct}
               onChange={(e) => setAssum("mgmtFeePct", e.target.value)}
@@ -475,25 +441,21 @@ export default function App() {
             inputMode="decimal"
           />
           </Field>
-          <Field
-            label="Aylık sabit gider"
-            hint="Monthly fixed expense"
-            suffix="$"
-          >
+          <Field label="Monthly Fixed Expense" suffix="$">
             <input
               value={a.monthlyFixed}
               onChange={(e) => setAssum("monthlyFixed", e.target.value)}
               inputMode="decimal"
             />
           </Field>
-          <Field label="Kuruluş gideri" hint="İlk aya eklenir" suffix="$">
+          <Field label="Setup Cost" hint="Added to first month" suffix="$">
             <input
               value={a.setupCost}
               onChange={(e) => setAssum("setupCost", e.target.value)}
               inputMode="decimal"
             />
           </Field>
-          <Field label="Gün sayacı" hint="Day count" suffix="gün">
+          <Field label="Day Count" suffix="days">
           <input
            value={a.dayCount}
            onChange={(e) => setAssum("dayCount", e.target.value)}
@@ -503,11 +465,11 @@ export default function App() {
         </div>
         <div className="derived">
           <span>
-            <b>Günlük faiz</b> {pct(r.daily, 4)}
+            <b>Daily Rate</b> {pct(r.daily, 4)}
           </span>
           <span className="dot" />
           <span>
-            <b>Aylık yönetim ücreti(+BSMV)</b> {pct(r.monthlyMgmt, 4)}
+            <b>Monthly Management Fee (+BSMV)</b> {pct(r.monthlyMgmt, 4)}
           </span>
         </div>
       </section>
@@ -515,13 +477,13 @@ export default function App() {
       {/* SCHEDULE */}
       <section className="panel">
         <div className="sec-label">
-          <span className="sec-no">02</span> Ödeme Takvimi
+          <span className="sec-no">02</span> Payment Schedule
         </div>
 
         {!r.dateOrderOk && (
           <div className="warn">
-            Tarihler artan sırada olmalı — bazı dönem gün sayıları sıfır veya
-            negatif.
+            Dates must be in ascending order — some period day counts are
+            zero or negative.
           </div>
         )}
 
@@ -530,26 +492,18 @@ export default function App() {
             <thead>
               <tr>
                 <th className="rownum"></th>
-                <th className="edit">
-                  Ödeme Takvimi<i>Payment Calendar</i>
-                </th>
-                <th className="edit num">
-                  Ödeme Tutarı ($)<i>Payment Amount</i>
-                </th>
-                <th className="edit ctr">
-                  Kupon<i>Coupon</i>
-                </th>
-                <th className="edit num">
-                  Anapara ($)<i>Principal </i>
-                </th>
-                <th className="num">Bakiye ($)</th>
-                <th className="num">Gün</th>
-                <th className="num">Dönem Faizi ($)</th>
-                <th className="num">Kupon ($)</th>
-                <th className="num key">Net NA Brüt ($)</th>
-                <th className="num">Yönetim Ücreti ($)</th>
-                <th className="num">Sabit Gider ($)</th>
-                <th className="num key">Net NA Fon ($)</th>
+                <th className="edit">Payment Date</th>
+                <th className="edit num">Payment Amount ($)</th>
+                <th className="edit ctr">Coupon</th>
+                <th className="edit num">Principal ($)</th>
+                <th className="num">Balance ($)</th>
+                <th className="num">Days</th>
+                <th className="num">Period Interest ($)</th>
+                <th className="num">Coupon ($)</th>
+                <th className="num key">Net CF Gross ($)</th>
+                <th className="num">Management Fee ($)</th>
+                <th className="num">Fixed Expense ($)</th>
+                <th className="num key">Net CF Fund ($)</th>
               </tr>
             </thead>
             <tbody>
@@ -575,7 +529,7 @@ export default function App() {
                       <input
                         type="checkbox"
                         checked={row.isCoupon}
-                        title="Bu tarihte birikmiş faiz ödenir"
+                        title="Pays accrued interest on this date"
                         onChange={(e) =>
                           setRow(i, "isCoupon", e.target.checked)
                         }
@@ -642,10 +596,10 @@ export default function App() {
         <div className="tape-in">
           <div className="tape-lead"></div>
           <div className="results">
-            <Result label="Brüt Kredi IRR" value={pct(r.grossIRR)} />
-            <Result label="Net Fon IRR" value={pct(r.fundIRR)} primary />
+            <Result label="Gross Loan IRR" value={pct(r.grossIRR)} />
+            <Result label="Net Fund IRR" value={pct(r.fundIRR)} primary />
             <Result
-              label="Toplam Faiz"
+              label="Total Interest"
               value={
                 <>
                   <Money v={r.totalInterest} dec={0} /> $
@@ -653,7 +607,7 @@ export default function App() {
               }
             />
             <Result
-              label="Toplam Ücret"
+              label="Total Fees"
               value={
                 <>
                   <Money v={r.fees} dec={0} /> $
