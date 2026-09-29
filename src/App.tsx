@@ -491,7 +491,7 @@ export default function App() {
             <thead>
               <tr>
                 <th className="rownum"></th>
-                <th className="edit">Payment Date</th>
+                <th className="edit">Payment Date (DD/MM/YYYY)</th>
                 <th className="edit num">Payment Amount ($)</th>
                 <th className="edit ctr">Coupon</th>
                 <th className="edit num">Principal ($)</th>
