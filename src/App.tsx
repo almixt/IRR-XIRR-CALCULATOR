@@ -248,20 +248,19 @@ const DEFAULT_ASSUMPTIONS = {
 };
 
 const DEFAULT_ROWS = [
-  { date: "2026-01-05", disbursement: "0", isCoupon: false, principal: "0" },
-  { date: "2026-02-05", disbursement: "0", isCoupon: false, principal: "0" },
-  { date: "2026-03-05", disbursement: "0", isCoupon: false, principal: "0" },
-  // NB: 6th, not 5th — matches the Excel exactly (creates a 32-then-29 day split)
-  { date: "2026-04-06", disbursement: "0", isCoupon: false, principal: "0" },
-  { date: "2026-05-05", disbursement: "0", isCoupon: false, principal: "0" },
-  { date: "2026-06-05", disbursement: "0", isCoupon: false, principal: "0" },
-  { date: "2026-07-05", disbursement: "0", isCoupon: false, principal: "0" },
-  { date: "2026-08-05", disbursement: "0", isCoupon: false, principal: "0" },
-  { date: "2026-09-05", disbursement: "0", isCoupon: false, principal: "0" },
-  { date: "2026-10-05", disbursement: "0", isCoupon: false, principal: "0" },
-  { date: "2026-11-05", disbursement: "0", isCoupon: false, principal: "0" },
-  { date: "2026-12-05", disbursement: "0", isCoupon: false, principal: "0" },
-  { date: "2027-01-05", disbursement: "0", isCoupon: false, principal: "0" },
+  { date: "2026-01-01", disbursement: "0", isCoupon: false, principal: "0" },
+  { date: "2026-02-01", disbursement: "0", isCoupon: false, principal: "0" },
+  { date: "2026-03-01", disbursement: "0", isCoupon: false, principal: "0" },
+  { date: "2026-04-01", disbursement: "0", isCoupon: false, principal: "0" },
+  { date: "2026-05-01", disbursement: "0", isCoupon: false, principal: "0" },
+  { date: "2026-06-01", disbursement: "0", isCoupon: false, principal: "0" },
+  { date: "2026-07-01", disbursement: "0", isCoupon: false, principal: "0" },
+  { date: "2026-08-01", disbursement: "0", isCoupon: false, principal: "0" },
+  { date: "2026-09-01", disbursement: "0", isCoupon: false, principal: "0" },
+  { date: "2026-10-01", disbursement: "0", isCoupon: false, principal: "0" },
+  { date: "2026-11-01", disbursement: "0", isCoupon: false, principal: "0" },
+  { date: "2026-12-01", disbursement: "0", isCoupon: false, principal: "0" },
+  { date: "2027-01-01", disbursement: "0", isCoupon: false, principal: "0" },
 ];
 
 function compute(a, rows) {
